@@ -4,11 +4,13 @@ const ticketControl = new TicketControl();
 
 const socketController = (socket) => {
   socket.emit('last-ticket', ticketControl.last);
+  socket.emit('status', ticketControl.last4);
+  socket.emit('tickets-pending', ticketControl.tickets.length);
 
   socket.on('next-ticket', (payload, callback) => {
     const next = ticketControl.nextTicket();
     callback(next);
-    // TODO: NOTIFICAR QUE HAY UN NUEVO TICKET SIN ASIGNAR
+    socket.broadcast.emit('tickets-pending', ticketControl.tickets.length);
   });
 
   socket.on('get-ticket', ({ desktop }, callback) => {
@@ -21,7 +23,9 @@ const socketController = (socket) => {
 
     const ticket = ticketControl.getTicket(desktop);
 
-    // TODO: NOTIFICAR CAMBIO EN LOS ÚLTIMOS 4
+    socket.broadcast.emit('status', ticketControl.last4);
+    socket.emit('tickets-pending', ticketControl.tickets.length);
+    socket.broadcast.emit('tickets-pending', ticketControl.tickets.length);
 
     if (!ticket) {
       callback({
